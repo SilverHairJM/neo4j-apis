@@ -1,0 +1,54 @@
+services:
+  app:
+    image: silverhair/neo4j-lab
+    container_name: rutas_api
+    ports:
+      - "3001:4000" # Mapea el puerto 4000 del contenedor al 3001 del host
+    environment:
+      - NEO4J_URI=neo4j://neo:7687
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      - neo
+      - redis
+    networks:
+      backend:
+        ipv4_address: 172.18.0.10
+    command: npm start
+
+  neo:
+    image: neo4j:latest
+    container_name: neo4j-lab
+    ports:
+      - "7474:7474" # Interfaz web de Neo4j
+      - "7687:7687" # Puerto Bolt para conexiones
+    networks:
+      backend:
+        ipv4_address: 172.18.0.2
+    environment:
+      - NEO4J_AUTH=none
+
+  redis:
+    image: redis:latest
+    container_name: redis-lab-cache
+    ports:
+      - "6379:6379" # Puerto estándar de Redis
+    networks:
+      backend:
+        ipv4_address: 172.18.0.3
+
+  redis-insight:
+    image: redislabs/redisinsight:latest
+    container_name: redis-insight
+    ports:
+      - "8001:8001" # Puerto para acceder a la interfaz de Redis Insight
+    networks:
+      backend:
+        ipv4_address: 172.18.0.4
+
+networks:
+  backend:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.18.0.0/24 # Subred personalizada para evitar conflictos
